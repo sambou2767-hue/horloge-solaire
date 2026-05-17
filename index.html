@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="Horloge Solaire est une application web interactive qui affiche et simule une horloge solaire en temps réel avec une interface moderne et éducative.">
+
+<title>Horloge Solaire Astronomique</title>
+<link rel="icon" href="horlige solie.png">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, sans-serif;
+    min-height:100vh;
+    background:
+    linear-gradient(to bottom,#081b29,#0f3443,#1d2671);
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+
+.container{
+    width:100%;
+    max-width:1200px;
+}
+
+.title{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.title h1{
+    font-size:42px;
+    color:#ffd54f;
+    margin-bottom:10px;
+}
+
+.title p{
+    color:#d8d8d8;
+    line-height:1.6;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:25px;
+}
+
+.card{
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:25px;
+    padding:25px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.35);
+}
+
+.clock-zone{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.clock{
+    width:340px;
+    height:340px;
+    border-radius:50%;
+    position:relative;
+    overflow:hidden;
+    border:10px solid #ffd54f;
+    background:
+    linear-gradient(to bottom,#4fc3f7 50%,#091833 50%);
+    box-shadow:0 0 40px rgba(255,213,79,0.5);
+}
+
+.sun{
+    position:absolute;
+    top:20px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:42px;
+}
+
+.moon{
+    position:absolute;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:42px;
+}
+
+.hand{
+    position:absolute;
+    width:6px;
+    height:130px;
+    background:#ffd54f;
+    left:50%;
+    top:35px;
+    transform-origin:bottom center;
+    transform:
+    translateX(-50%)
+    rotate(0deg);
+    border-radius:10px;
+    box-shadow:0 0 15px rgba(255,213,79,0.8);
+    transition:1s ease-in-out;
+}
+
+.center{
+    width:18px;
+    height:18px;
+    background:white;
+    border-radius:50%;
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+}
+
+.season{
+    margin-top:25px;
+    font-size:26px;
+    color:#ffd54f;
+}
+
+.controls h2{
+    margin-bottom:20px;
+    color:#ffd54f;
+}
+
+.control{
+    margin-bottom:25px;
+}
+
+label{
+    display:block;
+    margin-bottom:10px;
+    font-size:18px;
+}
+
+input[type=range]{
+    width:100%;
+}
+
+.value{
+    margin-top:8px;
+    color:#4fc3f7;
+    font-size:18px;
+}
+
+button{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:15px;
+    background:#ffd54f;
+    color:#111;
+    font-size:18px;
+    cursor:pointer;
+    font-weight:bold;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.02);
+}
+
+.results{
+    margin-top:25px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.result{
+    background:rgba(255,255,255,0.06);
+    border-radius:15px;
+    padding:15px;
+    text-align:center;
+}
+
+.result h3{
+    color:#ffd54f;
+    margin-bottom:10px;
+}
+
+.result p{
+    font-size:24px;
+    color:#4fc3f7;
+}
+
+.info{
+    margin-top:25px;
+    background:rgba(255,255,255,0.06);
+    padding:18px;
+    border-radius:15px;
+    line-height:1.8;
+}
+
+.graph{
+    width:100%;
+    height:120px;
+    margin-top:25px;
+}
+
+svg{
+    width:100%;
+    height:100%;
+}
+
+@media(max-width:900px){
+
+.grid{
+    grid-template-columns:1fr;
+}
+
+.clock{
+    width:min(75vw,320px);
+    height:min(75vw,320px);
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="title">
+
+<h1>☀ Horloge Solaire Astronomique ☾</h1>
+
+<p>
+Simulation réaliste du lever et coucher du Soleil
+avec corrections astronomiques NOAA.
+</p>
+
+</div>
+
+<div class="grid">
+
+<!-- Horloge -->
+
+<div class="card clock-zone">
+
+<div class="clock">
+
+<div class="sun">☀</div>
+
+<div class="moon">☾</div>
+
+<div class="hand" id="hand"></div>
+
+<div class="center"></div>
+
+</div>
+
+<div class="season" id="season">
+☀ Été
+</div>
+
+<div class="graph">
+
+<svg viewBox="0 0 100 100">
+
+<path
+id="curve"
+d="M0 50 Q 25 20 50 50 T100 50"
+stroke="#ffd54f"
+stroke-width="2"
+fill="none"
+/>
+
+</svg>
+
+</div>
+
+</div>
+
+<!-- Paramètres -->
+
+<div class="card controls">
+
+<h2>Paramètres Astronomiques</h2>
+
+<div class="control">
+
+<label>Latitude</label>
+
+<input
+type="range"
+id="latitude"
+min="-90"
+max="90"
+step="0.1"
+value="36.9"
+>
+
+<div class="value" id="latValue">
+36.9°
+</div>
+
+</div>
+
+<div class="control">
+
+<label>Longitude</label>
+
+<input
+type="range"
+id="longitude"
+min="-180"
+max="180"
+step="0.01"
+value="7.76"
+>
+
+<div class="value" id="longValue">
+7.76°
+</div>
+
+</div>
+
+<div class="control">
+
+<label>Jour de l'année</label>
+
+<input
+type="range"
+id="day"
+min="1"
+max="365"
+value="137"
+>
+
+<div class="value" id="dayValue">
+137
+</div>
+
+</div>
+
+<div class="control">
+
+<label>Fuseau Horaire UTC</label>
+
+<input
+type="range"
+id="timezone"
+min="-12"
+max="12"
+value="1"
+>
+
+<div class="value" id="timezoneValue">
+UTC+1
+</div>
+
+</div>
+
+<button onclick="calculate()">
+Calculer
+</button>
+
+<div class="results">
+
+<div class="result">
+<h3>Jour</h3>
+<p id="dayLength">12 h</p>
+</div>
+
+<div class="result">
+<h3>Nuit</h3>
+<p id="nightLength">12 h</p>
+</div>
+
+<div class="result">
+<h3>Lever</h3>
+<p id="sunrise">06h00</p>
+</div>
+
+<div class="result">
+<h3>Coucher</h3>
+<p id="sunset">18h00</p>
+</div>
+
+<div class="result">
+<h3>Déclinaison</h3>
+<p id="declination">0°</p>
+</div>
+
+<div class="result">
+<h3>Midi Solaire</h3>
+<p id="solarNoon">12h00</p>
+</div>
+
+</div>
+
+<div class="info" id="info">
+Informations astronomiques.
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function toTime(decimalHour){
+
+    while(decimalHour < 0){
+        decimalHour += 24;
+    }
+
+    while(decimalHour >= 24){
+        decimalHour -= 24;
+    }
+
+    let h = Math.floor(decimalHour);
+
+    let m = Math.floor(
+        (decimalHour - h) * 60
+    );
+
+    if(h < 10) h = "0" + h;
+    if(m < 10) m = "0" + m;
+
+    return h + "h" + m;
+}
+
+function getSeason(day){
+
+    if(day < 80) return "❄ Hiver";
+
+    if(day < 172) return "🌸 Printemps";
+
+    if(day < 266) return "☀ Été";
+
+    if(day < 355) return "🍂 Automne";
+
+    return "❄ Hiver";
+}
+
+function calculate(){
+
+    let latitude =
+    parseFloat(
+        document.getElementById(
+            'latitude'
+        ).value
+    );
+
+    let longitude =
+    parseFloat(
+        document.getElementById(
+            'longitude'
+        ).value
+    );
+
+    let day =
+    parseFloat(
+        document.getElementById(
+            'day'
+        ).value
+    );
+
+    let timezone =
+    parseFloat(
+        document.getElementById(
+            'timezone'
+        ).value
+    );
+
+    // Affichage valeurs
+
+    document.getElementById(
+        'latValue'
+    ).innerHTML =
+    latitude.toFixed(1) + '°';
+
+    document.getElementById(
+        'longValue'
+    ).innerHTML =
+    longitude.toFixed(2) + '°';
+
+    document.getElementById(
+        'dayValue'
+    ).innerHTML =
+    day;
+
+    document.getElementById(
+        'timezoneValue'
+    ).innerHTML =
+    'UTC' +
+    (timezone >= 0 ? '+' : '') +
+    timezone;
+
+    // Déclinaison solaire NOAA
+
+    let declination =
+    23.44 *
+    Math.sin(
+        (2 * Math.PI / 365) *
+        (day - 81)
+    );
+
+    let latRad =
+    latitude * Math.PI / 180;
+
+    let decRad =
+    declination * Math.PI / 180;
+
+    // Réfraction atmosphérique NOAA
+
+    let solarAltitude =
+    -0.833 * Math.PI / 180;
+
+    // Angle horaire corrigé
+
+    let cosH =
+    (
+        Math.sin(solarAltitude)
+        -
+        Math.sin(latRad)
+        *
+        Math.sin(decRad)
+    )
+    /
+    (
+        Math.cos(latRad)
+        *
+        Math.cos(decRad)
+    );
+
+    let H;
+    let daylight;
+
+    // Gestion jour/nuit polaire
+
+    if(cosH > 1){
+
+        daylight = 0;
+        H = 0;
+
+    }
+    else if(cosH < -1){
+
+        daylight = 24;
+        H = Math.PI;
+
+    }
+    else{
+
+        H = Math.acos(cosH);
+
+        daylight =
+        (24 / Math.PI) * H;
+    }
+
+    let night =
+    24 - daylight;
+
+    // Equation du temps NOAA
+
+    let B =
+    (360 / 365)
+    *
+    (day - 81)
+    *
+    Math.PI / 180;
+
+    let E =
+    9.87 * Math.sin(2 * B)
+    -
+    7.53 * Math.cos(B)
+    -
+    1.5 * Math.sin(B);
+
+    // Méridien standard
+
+    let standardMeridian =
+    timezone * 15;
+
+    // Correction solaire
+
+    let solarCorrection =
+    4 *
+    (
+        longitude
+        -
+        standardMeridian
+    );
+
+    // Midi solaire réel
+
+    let solarNoon =
+    12
+    -
+    (solarCorrection / 60)
+    -
+    (E / 60);
+
+    // Lever/Coucher
+
+    let sunrise =
+    solarNoon - daylight / 2;
+
+    let sunset =
+    solarNoon + daylight / 2;
+
+    // Affichage résultats
+
+    document.getElementById(
+        'dayLength'
+    ).innerHTML =
+    daylight.toFixed(2) + ' h';
+
+    document.getElementById(
+        'nightLength'
+    ).innerHTML =
+    night.toFixed(2) + ' h';
+
+    document.getElementById(
+        'sunrise'
+    ).innerHTML =
+    toTime(sunrise);
+
+    document.getElementById(
+        'sunset'
+    ).innerHTML =
+    toTime(sunset);
+
+    document.getElementById(
+        'declination'
+    ).innerHTML =
+    declination.toFixed(2) + '°';
+
+    document.getElementById(
+        'solarNoon'
+    ).innerHTML =
+    toTime(solarNoon);
+
+    // Saison
+
+    document.getElementById(
+        'season'
+    ).innerHTML =
+    getSeason(day);
+
+    // Rotation horloge
+
+    let angle =
+    (day / 365) * 360;
+
+    document.getElementById(
+        'hand'
+    ).style.transform =
+    'translateX(-50%) rotate('
+    + angle +
+    'deg)';
+
+    // Graphique dynamique
+
+    let amplitude =
+    40 - (daylight / 24) * 35;
+
+    document.getElementById(
+        'curve'
+    ).setAttribute(
+        'd',
+        'M0 50 Q 25 '
+        + amplitude +
+        ' 50 50 T100 50'
+    );
+
+    // Informations
+
+    let info = '';
+
+    if(daylight > 16){
+
+        info =
+        'Les journées sont très longues à cette latitude durant cette saison.';
+    }
+    else if(daylight < 8){
+
+        info =
+        'Les nuits dominent fortement dans cette région actuellement.';
+    }
+    else{
+
+        info =
+        'Le cycle jour/nuit est relativement équilibré.';
+    }
+
+    document.getElementById(
+        'info'
+    ).innerHTML =
+    info;
+}
+
+calculate();
+
+document.getElementById(
+    'latitude'
+).addEventListener(
+    'input',
+    calculate
+);
+
+document.getElementById(
+    'longitude'
+).addEventListener(
+    'input',
+    calculate
+);
+
+document.getElementById(
+    'day'
+).addEventListener(
+    'input',
+    calculate
+);
+
+document.getElementById(
+    'timezone'
+).addEventListener(
+    'input',
+    calculate
+);
+
+</script>
+
+</body>
+</html>
